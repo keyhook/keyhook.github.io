@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html ng-app="puzzleApp">
+
+<head>
+  <title>Quà sinh nhật Nguyên</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.6/ui-bootstrap-tpls.min.js"></script>
+</head>
+
+<body ng-controller="PuzzleController">
+
+  <style>
+    body {
+      background-color: #f0f0f0; /* Light gray background */
+      color: #333; /* Dark gray text color */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #0078d4; /* Blue title color */
+    }
+
+    img {
+      display: block;
+      margin: 0 auto;
+      margin-top: 20px;
+      border: 1px solid #ccc; /* Light gray border */
+      border-radius: 5px;
+    }
+
+    .button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    button {
+      font-size: 16px;
+      margin: 5px;
+      width: 60px;
+      height: 60px;
+      border-radius: 5px;
+      background-color: #0078d4; /* Blue button color */
+      color: white;
+      border: none;
+    }
+
+    .qa-container {
+      margin-top: 20px;
+      padding: 10px; /* Add padding */
+      background-color: #fff; /* White background */
+      border: 1px solid #ccc; /* Light gray border */
+      border-radius: 5px;
+    }
+
+    label {
+      font-size: 18px;
+      color: #333;
+    }
+
+    input {
+      font-size: 16px;
+      margin: 5px;
+      width: 300px;
+      padding: 5px;
+      box-sizing: border-box;
+      color: #333;
+    }
+
+    button.qa-button {
+      font-size: 16px;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #0078d4;
+      color: white;
+      border: none;
+    }
+
+    .answer-container {
+      color: #0078d4; /* Blue answer color */
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+
+  <h1>Puzzle game</h1>
+
+  <img src="/Users/khoanm6/Downloads/z4915564756864_9317a5fae9e600ac83438ce4dd8b80d8.jpg" style="width: 420px; height: 415px;">
+
+  <div class="button-container">
+    <button ng-repeat="button in buttons" ng-click="showQuestion(button.number)">{{ button.text }}</button>
+  </div>
+
+  <div class="qa-container" ng-show="questionVisible">
+    <label>{{ currentQuestion.question }}</label>
+    <br>
+    <input type="text" ng-model="currentQuestion.answer" ng-disabled="currentQuestion.disabled">
+    <br>
+    <button class="qa-button" ng-click="check(currentQuestion)">Submit</button>
+    <br>
+    <span class="answer-container" ng-if="currentQuestion.showAnswer">Answer: {{ currentQuestion.correctAnswer }}</span>
+  </div>
+
+  <label class="qa-container">Nguyên đứng thứ mấy từ trái sang phải trong hình và đang mặc quần màu j?(viết theo dạng: số và chữ. vd: 3 và xanh. nhìn kĩ)</label>
+  <br>
+  <input class="qa-container" type="text" ng-model="finalAnswer">
+  <br>
+  <button class="qa-button" ng-click="submitFinalAnswer()">Submit</button>
+
+  <script>
+    var app = angular.module('puzzleApp', ['ui.bootstrap']);
+
+    app.controller('PuzzleController', function ($scope, $uibModal, $window) {
+      $scope.buttons = [
+        { text: "1", number: 1 },
+        { text: "2", number: 2 },
+        { text: "3", number: 3 },
+        { text: "4", number: 4 },
+        { text: "5", number: 5 },
+        { text: "6", number: 6 },
+        { text: "7", number: 7 },
+        { text: "8", number: 8 },
+        { text: "9", number: 9 }
+      ];
+
+      $scope.questionsAndAnswers = [
+        { question: 'Nguyên thích ăn trái j??? (ghi tên trái)', correctAnswer: 'sầu riêng' },
+        { question: "Số điện thoại của Nguyên là j?(ko ghi dấu cách)", correctAnswer: '0905463283' },
+        { question: "Nguyên thích màu nào???(ghi tên màu)", correctAnswer: 'xanh lá' },
+        { question: "Nguyên tuổi con j??(ghi tên con)", correctAnswer: 'rồng' },
+        { question: "U có yêu Nguyên ko???", correctAnswer: 'có' },
+        { question: "Nguyên ghét món j(ghi tên món)", correctAnswer: 'ớt chuông' },
+        { question: "Nguyên làm ở đâu?(ghi tên chỗ làm)", correctAnswer: 'satra' },
+        { question: "Nguyên làm móng tay theo chủ đề j?", correctAnswer: 'noel' },
+        { question: "U có ghét Nguyên ko??", correctAnswer: 'không' }
+      ];
+
+      $scope.finalAnswer = "";
+      $scope.questionVisible = false;
+      $scope.currentQuestion = {};
+
+      $scope.showQuestion = function (number) {
+        $scope.currentQuestion = $scope.questionsAndAnswers[number - 1];
+        $scope.currentQuestion.showQuestion = true;
+
+        // Open a modal dialog
+        var modalInstance = $uibModal.open({
+          templateUrl: 'questionModal.html',
+          controller: 'ModalController',
+          resolve: {
+            question: function () {
+              return $scope.currentQuestion;
+            }
+          }
+        });
+
+        modalInstance.result.then(function (answer) {
+          // Handle the answer if needed
+          $scope.check($scope.currentQuestion);
+        }, function () {
+          // Modal dismissed
+        });
+      };
+
+      $scope.check = function (qa) {
+        if (qa.answer.toLowerCase().trim() === qa.correctAnswer) {
+          $window.alert(":) Đúng là gia đình Nguyên mà :)");
+          qa.disabled = true;
+        } else {
+          $window.alert(":( Hic, sao u lại saiiiii");
+        }
+        qa.showAnswer = true;
+      };
+
+      $scope.submitFinalAnswer = function () {
+        if ($scope.finalAnswer.toLowerCase().trim() === "5 và đỏ") {
+          $window.alert(":)))))))))))))))))))) YEAH, BẠN THẮNG RỒI!!!");
+        } else {
+          $window.alert(":(((((((((((((((((( Huhu, cố gắng lần sau nhé!");
+          $window.close();
+        }
+      };
+    });
+
+    app.controller('ModalController', function ($scope, $uibModalInstance, question) {
+      $scope.question = question;
+
+      $scope.ok = function () {
+        $uibModalInstance.close($scope.question.answer);
+      };
+
+      $scope.cancel = function () {
+        $uibModalInstance.dismiss('cancel');
+      };
+    });
+  </script>
+
+  <!-- Modal template -->
+  <script type="text/ng-template" id="questionModal.html">
+    <div class="modal-header">
+      <h3 class="modal-title">Câu hỏi</h3>
+    </div>
+    <div class="modal-body">
+      <label>{{ question.question }}</label>
+      <br>
+      <input type="text" ng-model="question.answer" ng-disabled="question.disabled">
+      <br>
+      <button class="qa-button" ng-click="ok()">Submit</button>
+    </div>
+    <div class="modal-footer">
+      <button class="qa-button" ng-click="cancel()">Cancel</button>
+    </div>
+  </script>
+
+</body>
+
+</html>
